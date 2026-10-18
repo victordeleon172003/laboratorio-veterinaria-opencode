@@ -1,121 +1,110 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useCallback, useEffect, useState } from 'react'
 import './App.css'
+import FormularioCita from './components/FormularioCita'
+import ListaCitas from './components/ListaCitas'
+import ListaMascotas from './components/ListaMascotas'
+import ListaPropietarios from './components/ListaPropietarios'
+import Mensaje from './components/Mensaje'
+import { supabase } from './lib/supabaseClient'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [propietarios, setPropietarios] = useState([])
+  const [mascotas, setMascotas] = useState([])
+  const [citas, setCitas] = useState([])
+  const [cargandoProp, setCargandoProp] = useState(true)
+  const [cargandoMasc, setCargandoMasc] = useState(true)
+  const [cargandoCitas, setCargandoCitas] = useState(true)
+  const [errorProp, setErrorProp] = useState('')
+  const [errorMasc, setErrorMasc] = useState('')
+  const [errorCitas, setErrorCitas] = useState('')
+  const [mensajeGlobal, setMensajeGlobal] = useState(null)
+
+  const cargarPropietarios = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.from('propietarios').select('*').order('nombre')
+      if (error) throw error
+      setPropietarios(data || [])
+      setCargandoProp(false)
+    } catch (error) {
+      setErrorProp(error?.message || 'Error al cargar propietarios')
+      setCargandoProp(false)
+    }
+  }, [])
+
+  const cargarMascotas = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('mascotas')
+        .select('id, nombre, especie, raza, propietario_id, propietarios(nombre)')
+        .order('nombre')
+      if (error) throw error
+      setMascotas(data || [])
+      setCargandoMasc(false)
+    } catch (error) {
+      setErrorMasc(error?.message || 'Error al cargar mascotas')
+      setCargandoMasc(false)
+    }
+  }, [])
+
+  const cargarCitas = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('citas')
+        .select('id, fecha, motivo, estado, mascota_id, mascotas(nombre)')
+        .order('fecha')
+      if (error) throw error
+      setCitas(data || [])
+      setCargandoCitas(false)
+      setErrorCitas('')
+    } catch (error) {
+      setErrorCitas(error?.message || 'Error al cargar citas')
+      setCargandoCitas(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    cargarPropietarios()
+    cargarMascotas()
+    cargarCitas()
+  }, [cargarPropietarios, cargarMascotas, cargarCitas])
+
+  const recargarTrasAlta = useCallback(() => {
+    cargarCitas()
+    setMensajeGlobal({ tipo: 'exito', texto: 'Listado de citas actualizado.' })
+    setTimeout(() => setMensajeGlobal(null), 2500)
+  }, [cargarCitas])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+    <main className="container">
+      <header>
+        <h1>Sistema de Citas Veterinarias</h1>
+        <p className="subtitulo">Laboratorio 23 — Programación Comercial (SDD)</p>
+      </header>
+
+      <Mensaje tipo={mensajeGlobal?.tipo} texto={mensajeGlobal?.texto} onClose={() => setMensajeGlobal(null)} />
+
+      <section className="seccion" aria-labelledby="titulo-propietarios">
+        <h2 id="titulo-propietarios">Propietarios</h2>
+        <ListaPropietarios propietarios={propietarios} cargando={cargandoProp} error={errorProp} />
       </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+      <section className="seccion" aria-labelledby="titulo-mascotas">
+        <h2 id="titulo-mascotas">Mascotas</h2>
+        <ListaMascotas mascotas={mascotas} cargando={cargandoMasc} error={errorMasc} />
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <section className="seccion" aria-labelledby="titulo-citas">
+        <h2 id="titulo-citas">Citas</h2>
+        <ListaCitas citas={citas} cargando={cargandoCitas} error={errorCitas} />
+      </section>
+
+      <FormularioCita
+        mascotas={mascotas}
+        onCitaCreada={recargarTrasAlta}
+        cargandoMascotas={cargandoMasc}
+        errorMascotas={errorMasc}
+      />
+    </main>
   )
 }
 
