@@ -63,9 +63,12 @@ function App() {
   }, [])
 
   useEffect(() => {
-    cargarPropietarios()
-    cargarMascotas()
-    cargarCitas()
+    const id = setTimeout(() => {
+      cargarPropietarios()
+      cargarMascotas()
+      cargarCitas()
+    }, 0)
+    return () => clearTimeout(id)
   }, [cargarPropietarios, cargarMascotas, cargarCitas])
 
   const recargarTrasAlta = useCallback(() => {
