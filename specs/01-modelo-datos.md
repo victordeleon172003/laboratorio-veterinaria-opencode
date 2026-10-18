@@ -47,9 +47,9 @@ Definir el esquema relacional de la base de datos para el Sistema de Citas Veter
 - `citas.mascota_id` → `mascotas.id` (uno-a-muchos: una mascota tiene muchas citas)
 
 ## Permisos GRANT
-- Conceder al rol de aplicación (`anon` y/o `authenticated`, según corresponda al uso con el cliente Supabase) únicamente los privilegios mínimos necesarios: `SELECT`, `INSERT`, `UPDATE`, `DELETE` sobre las tres tablas, **solo si** el flujo de la app los requiere.
+- Las tres tablas (`propietarios`, `mascotas`, `citas`) tendrán concedidos, de forma explícita, los privilegios `SELECT`, `INSERT`, `UPDATE` y `DELETE` para **ambos roles**: `anon` y `authenticated`.
 - No conceder privilegios sobre esquemas del sistema ni sobre otras tablas.
-- Justificación: se aplica principio de mínimo privilegio.
+- Justificación: se aplica principio de mínimo privilegio (solo los cuatro verbos DML necesarios, sin privilegios de esquema).
 
 ## Datos de ejemplo (3–5 por tabla)
 ### propietarios (ejemplos)
